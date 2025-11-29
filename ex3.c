@@ -10,6 +10,7 @@
 
 #define CONNECT_N 4
 
+// check
 /* Tokens */
 #define EMPTY '.'
 #define TOKEN_P1 'X'
@@ -46,8 +47,8 @@ void printBoard(char[][COLS], int, int);
 
 int getPlayerType(int);
 
-
-int main() {
+int main()
+{
     char board[ROWS][COLS];
     printf("Connect Four (%d rows x %d cols)\n\n", ROWS, COLS);
     int p1Type = getPlayerType(1);
@@ -58,36 +59,47 @@ int main() {
     return 0;
 }
 
-void printBoard(char board[][COLS], int rows, int cols) {
+void printBoard(char board[][COLS], int rows, int cols)
+{
     printf("\n");
-    for (int r = 0; r < rows; r++) {
+    for (int r = 0; r < rows; r++)
+    {
         printf("|");
-        for (int c = 0; c < cols; c++) {
+        for (int c = 0; c < cols; c++)
+        {
             putchar(board[r][c]);
             printf("|");
         }
         printf("\n");
     }
-    for (int c = 1; c <= cols; c++) {
+    for (int c = 1; c <= cols; c++)
+    {
         printf(" %d", c % 10);
     }
     printf("\n\n");
 }
 
-int getPlayerType(int playerNumber) {
+int getPlayerType(int playerNumber)
+{
     char ch;
-    while (1) {
+    while (1)
+    {
         printf("Choose type for player %d: h - human, c - computer: ", playerNumber);
         int n = scanf(" %c", &ch);
-        if (n != 1) {
+        if (n != 1)
+        {
             printf("Input error. Try again.\n");
-            while (getchar() != '\n'); // clear input buffer
+            while (getchar() != '\n')
+                ; // clear input buffer
             continue;
         }
-        if (ch == 'h' || ch == 'H') return HUMAN;
-        if (ch == 'c' || ch == 'C') return COMPUTER;
+        if (ch == 'h' || ch == 'H')
+            return HUMAN;
+        if (ch == 'c' || ch == 'C')
+            return COMPUTER;
 
         printf("Invalid selection. Enter h or c.\n");
-        while (getchar() != '\n'); // clear rest of input
+        while (getchar() != '\n')
+            ; // clear rest of input
     }
 }
