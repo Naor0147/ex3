@@ -10,7 +10,6 @@
 
 #define CONNECT_N 4
 
-// check
 /* Tokens */
 #define EMPTY '.'
 #define TOKEN_P1 'X'
