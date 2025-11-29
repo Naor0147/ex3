@@ -48,6 +48,7 @@ int getPlayerType(int);
 
 int main()
 {
+    
     char board[ROWS][COLS];
     printf("Connect Four (%d rows x %d cols)\n\n", ROWS, COLS);
     int p1Type = getPlayerType(1);
@@ -102,3 +103,36 @@ int getPlayerType(int playerNumber)
             ; // clear rest of input
     }
 }
+
+void initBoard(char board[][COLS], int rows, int columns)
+{
+    for (int i = 0; i < rows; i++)
+    {
+        for (int j = 0; j < columns; j++)
+        {
+            // using Empty macro to fill the the board
+            board[i][j] = EMPTY; 
+        }
+    }
+}
+
+void runConnectFour(char board[][COLS] , int rows, int columns, int p1Type, int p2Type ){
+    int gameRunneing=1;
+    while (gameRunneing)
+    {
+        /* code */
+        checkVictory(board, ROWS, COLS, p1Type, p2Type,);
+
+
+    }
+    
+
+
+}
+
+
+// neeed to fill
+int checkVictory(char board[][COLS] , int rows, int columns, int p1Type, int p2Type , char token ){
+    return 0;
+}
+
