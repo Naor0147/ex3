@@ -7,11 +7,11 @@ Assignment:ex2
 #include <stdio.h>
 
 #ifndef ROWS
-#define ROWS 6
+#define ROWS 4
 #endif
 
 #ifndef COLS
-#define COLS 7
+#define COLS 4
 #endif
 
 #define CONNECT_N 4
@@ -56,25 +56,23 @@ void printBoard(char board[][COLS], int rows, int cols);
 int getPlayerType(int);
 
 /// custom
-// checks if the next n values in a straight line are the same and not empty
-int areTheSameValueAndNotEmptyStraight(char board[][COLS], int row, int col, int startRow, int startCol, int deltaRow, int deltaCol, char playerToken);
+int calculateColumnPriority(int columns, int priorityIndex);
+
 /// check for each turn if the game should continue or end
 int executeTurn(char board[][COLS], int rows, int columns, int pType, char playerToken);
 /// helps to make the games loop less packed
 void performMove(char board[][COLS], int rows, int columns, int pType, char playerToken);
-// diagonal check helpers
-int areTheSameValueAndNotEmptyDiagonalLeft(char board[][COLS], int startRow, int startCol, int diagonal, char playerToken);
-int areTheSameValueAndNotEmptyDiagonalRight(char board[][COLS], int startRow, int startCol, int diagonal, char playerToken);
-// straight check helpers
-int areTheSameValueAndNotEmptyVertical(char board[][COLS], int startRow, int startCol, int numberConnect, char playerToken);
-int areTheSameValueAndNotEmptyHorizontal(char board[][COLS], int startRow, int startCol, int numberConnect, char playerToken);
 
 // print victory message
 void PrintVictoryMessage(char playerToken);
 
 // computer helper functions
 int computerHelper(char board[][COLS], int rows, int columns, char token, int priorityOrder[COLS], int customConnectN);
-int checkNextMoveWins(char board[][COLS], int rows, int columns, char playerToken, int priorityOrder[COLS], int customConnectN);
+
+// custom check
+int countMatches(char board[][COLS], int rows, int cols, int startRow, int startCol, int stepRow, int stepCol, char token);
+int checkVictoryFromCell(char board[][COLS], int rows, int columns, int row, int col, int targetLength, char token);
+int checkNextMoveWins(char board[][COLS], int rows, int columns, char playerToken, int priorityOrder[COLS], int targetLength);
 
 int main()
 {
@@ -275,58 +273,26 @@ int makeMove(char board[][COLS], int rows, int columns, int coulmIndex, char pla
 }
 
 // checks for victory in all directions+print victory message
+// Checks for victory by scanning the board and using the efficient helper
 int checkVictory(char board[][COLS], int rows, int columns, int numberConnect, char playerToken)
 {
-    // horizontal check
+    // Iterate through every cell in the board
     for (int i = 0; i < rows; i++)
     {
-        for (int j = 0; j <= columns - numberConnect; j++) // checks from index to n after if they are the same and not empty
+        for (int j = 0; j < columns; j++)
         {
-
-            if (areTheSameValueAndNotEmptyHorizontal(board, i, j, numberConnect, playerToken))
+            // If we find a token belonging to the player, check if it forms a sequence
+            if (board[i][j] == playerToken)
             {
-                return 1;
+                // checkVictoryFromCell checks all 4 directions from this specific point
+                // effectively replacing all your old manual loops
+                if (checkVictoryFromCell(board, rows, columns, i, j, numberConnect, playerToken))
+                {
+                    return 1;
+                }
             }
         }
     }
-
-    // vertical check
-    for (int i = 0; i <= rows - numberConnect; i++)
-    {
-        for (int j = 0; j < columns; j++) // checks from index to n after if they are the same and not empty
-        {
-            // if (areTheSameValueAndNotEmptyStraight(board, rows, columns, i, j, numberConnect - 1, 0, playerToken))
-            if (areTheSameValueAndNotEmptyVertical(board, i, j, numberConnect, playerToken))
-            {
-                return 1;
-            }
-        }
-    }
-
-    // diagonal left check
-    for (int i = 0; i <= rows - numberConnect; i++)
-    {
-        for (int j = numberConnect - 1; j < columns; j++) // checks from index to n after if they are the same and not empty
-        {
-            if (areTheSameValueAndNotEmptyDiagonalLeft(board, i, j, numberConnect, playerToken))
-            {
-                return 1;
-            }
-        }
-    }
-
-    // diagonal right check
-    for (int i = 0; i <= rows - numberConnect; i++)
-    {
-        for (int j = 0; j <= columns - numberConnect; j++) // checks from index to n after if they are the same and not empty
-        {
-            if (areTheSameValueAndNotEmptyDiagonalRight(board, i, j, numberConnect, playerToken))
-            {
-                return 1;
-            }
-        }
-    }
-
     return 0;
 }
 
@@ -341,59 +307,6 @@ void PrintVictoryMessage(char playerToken)
         printf("Player 2 (%c) wins!\n", playerToken);
     }
 }
-
-int areTheSameValueAndNotEmptyVertical(char board[][COLS], int startRow, int startCol, int numberConnect, char playerToken)
-{
-    for (int i = 0; i < numberConnect; i++)
-    {
-        // Check moving down rows (startRow + i), keeping column constant
-        if (board[startRow + i][startCol] != playerToken)
-        {
-            return 0;
-        }
-    }
-    return 1;
-}
-
-int areTheSameValueAndNotEmptyHorizontal(char board[][COLS], int startRow, int startCol, int numberConnect, char playerToken)
-{
-    for (int i = 0; i < numberConnect; i++)
-    {
-        // Check moving right across columns (startCol + i), keeping row constant
-        if (board[startRow][startCol + i] != playerToken)
-        {
-            return 0;
-        }
-    }
-    return 1;
-}
-
-/// diagonal check helpers
-int areTheSameValueAndNotEmptyDiagonalLeft(char board[][COLS], int startRow, int startCol, int diagonal, char playerToken)
-{
-    for (int i = 0; i < diagonal; i++)
-    {
-        if (board[startRow + i][startCol - i] != playerToken)
-        {
-            return 0;
-        }
-    }
-    return 1;
-}
-
-int areTheSameValueAndNotEmptyDiagonalRight(char board[][COLS], int startRow, int startCol, int diagonal, char playerToken)
-{
-    for (int i = 0; i < diagonal; i++)
-    {
-        if (board[startRow + i][startCol + i] != playerToken)
-        {
-            return 0;
-        }
-    }
-    return 1;
-}
-
-// checks if the next n values in a straight line are the same and not empty
 
 int humanChoose(char board[][COLS], int rows, int columns)
 {
@@ -434,37 +347,6 @@ int humanChoose(char board[][COLS], int rows, int columns)
     }
 
     // computer logic
-}
-
-// Define column priority order (center columns first) to break ties
-// For 7 columns: 3 -> 2 -> 4 -> 1 -> 5 -> 0 -> 6
-
-// 1. Check for immediate win (Priority 1)
-// Try to place myToken. If it wins, choose this column.
-
-// 2. Block opponent's win (Priority 2)
-// Try to place enemyToken. If it wins for them, block this column.
-
-// 3. Create a sequence of 3 (Priority 3)
-// Try to place myToken to create a sequence of 3.
-
-// 4. Block opponent's sequence of 3 (Priority 4)
-// Try to place enemyToken to prevent them from creating a sequence of 3.
-
-// 5. Arbitrary choice (Priority 5)
-// If no condition is met, pick the first available column based on priority order.
-
-int calculateColumnPriority(int columns, int priorityIndex)
-{
-    int center = columns / 2;
-    if (priorityIndex % 2 == 0)
-    {
-        return center + (priorityIndex / 2);
-    }
-    else
-    {
-        return center - ((priorityIndex + 1) / 2);
-    }
 }
 
 int computerChoose(char board[][COLS], int rows, int columns, char token)
@@ -525,25 +407,107 @@ int computerHelper(char board[][COLS], int rows, int columns, char token, int pr
     return possibleMove;
 }
 
-int checkNextMoveWins(char board[][COLS], int rows, int columns, char playerToken, int priorityOrder[COLS], int customConnectN)
+// Helper: Counts consecutive tokens in a specific direction (deltaRow, deltaCol)
+int countMatches(char board[][COLS], int rows, int cols, int startRow, int startCol, int stepRow, int stepCol, char token)
 {
+    int count = 0;
+    int currentRow = startRow + stepRow;
+    int currentCol = startCol + stepCol;
 
-    for (int i = 0; i < columns; i++)
+    // Keep moving in the direction while inside bounds and tokens match
+    while (isInBounds(rows, cols, currentRow, currentCol) &&
+           board[currentRow][currentCol] == token)
     {
-        int col = priorityOrder[i];
-        int freeRow = getFreeRow(board, rows, columns, col);
+        count++;
+        currentRow += stepRow;
+        currentCol += stepCol;
+    }
+    return count;
+}
+// Checks if placing a token at [row][col] creates a winning sequence
+int checkVictoryFromCell(char board[][COLS], int rows, int columns, int row, int col, int targetLength, char token)
+{
+    // Directions: 1.right  2.down  3.down right  4.down-Left , their opposites will be checked in the loop
+    int stepRows[] = {0, 1, 1, 1};
+    int stepCols[] = {1, 0, 1, -1};
+    int totalDirections = 4;
 
-        if (freeRow != -1)
+    for (int i = 0; i < totalDirections; i++)
+    {
+        int dirctionRow = stepRows[i];
+        int dirctionCol = stepCols[i];
+
+        // how many tokens are in line sequence
+        int totalSequence = 1;
+
+        // Add matches from the right or up direction
+        totalSequence += countMatches(board, rows, columns, row, col, dirctionRow, dirctionCol, token);
+
+        // Add matches from the left or down direction
+        totalSequence += countMatches(board, rows, columns, row, col, -dirctionRow, -dirctionCol, token);
+
+        // check if the total sequence is enough for victory
+        if (totalSequence >= targetLength)
         {
-            makeMove(board, rows, columns, col, playerToken);
-            int victory = checkVictory(board, rows, columns, customConnectN, playerToken);
-            // Undo move
-            board[freeRow][col] = EMPTY;
-            if (victory)
-            {
-                return col;
-            }
+            return 1;
         }
     }
-    return -1;
+    return 0;
+}
+int checkNextMoveWins(char board[][COLS], int rows, int columns, char playerToken, int priorityOrder[COLS], int targetLength)
+{
+    // Iterate through columns based on the strategy (center columns first)
+    for (int i = 0; i < columns; i++)
+    {
+        int colIndex = priorityOrder[i];
+        int rowIndex = getFreeRow(board, rows, columns, colIndex);
+
+        // Skip if the column is full
+        if (rowIndex == -1)
+            continue;
+
+        // I simulate the move
+        board[rowIndex][colIndex] = playerToken;
+
+        //  I check if this move wins the game
+        int isVictory = checkVictoryFromCell(board, rows, columns, rowIndex, colIndex, targetLength, playerToken);
+
+        //  Undo the move (restore board state)
+        board[rowIndex][colIndex] = EMPTY;
+
+        if (isVictory)
+        {
+            return colIndex; // Found a winning column
+        }
+    }
+
+    return -1; // No winning move found
+}
+
+int calculateColumnPriority(int columns, int priorityIndex)
+{
+    // calcualte the proity
+    int center = (columns - 1) / 2;
+
+    if (priorityIndex == 0)
+        return center;
+
+    int offset = (priorityIndex + 1) / 2;
+
+    if (columns % 2 == 0) // Even number
+    {
+
+        if (priorityIndex % 2 != 0)
+            return center + offset;
+        else
+            return center - offset;
+    }
+    else // Odd number
+    {
+
+        if (priorityIndex % 2 != 0)
+            return center - offset;
+        else
+            return center + offset;
+    }
 }
