@@ -37,7 +37,7 @@ int getFreeRow(char board[][COLS], int rows, int columns, int coulmIndex);
 int makeMove(char board[][COLS], int rows, int columns, int coulmIndex, char playerToken);
 
 /// changed the function parmeters removed uncecery int
-int checkVictory(char board[][COLS], int rows, int columns, char playerToken);
+int checkVictory(char board[][COLS], int rows, int columns, int numberConnect, char playerToken);
 
 /* Human player: asks repeatedly until a valid non-full column is chosen (0-based) */
 int humanChoose(char board[][COLS], int rows, int columns);
@@ -68,6 +68,10 @@ int areTheSameValueAndNotEmptyDiagonalRight(char board[][COLS], int startRow, in
 
 // print victory message
 void PrintVictoryMessage(char playerToken);
+
+// computer helper functions
+int computerHelper(char board[][COLS], int rows, int columns, char token, int priorityOrder[COLS], int customConnectN);
+int checkNextMoveWins(char board[][COLS], int rows, int columns, char playerToken, int priorityOrder[COLS], int customConnectN);
 
 int main()
 {
@@ -182,8 +186,9 @@ int executeTurn(char board[][COLS], int rows, int columns, int pType, char playe
     performMove(board, rows, columns, pType, playerToken);
     printBoard(board, rows, columns);
 
-    if (checkVictory(board, rows, columns, playerToken))
+    if (checkVictory(board, rows, columns, CONNECT_N, playerToken))
     {
+        PrintVictoryMessage(playerToken);
         return 0;
     }
     return 1;
@@ -200,7 +205,10 @@ void performMove(char board[][COLS], int rows, int columns, int pType, char play
     }
     else if (pType == COMPUTER)
     {
-        // playeChosenColumn= computerChoose();
+
+        playeChosenColumn = computerChoose(board, rows, columns, playerToken);
+        makeMove(board, rows, columns, playeChosenColumn, playerToken);
+        printf("Computer chose column %d\n", playeChosenColumn + 1);
     }
 }
 
@@ -264,55 +272,51 @@ int makeMove(char board[][COLS], int rows, int columns, int coulmIndex, char pla
 }
 
 // checks for victory in all directions+print victory message
-int checkVictory(char board[][COLS], int rows, int columns, char playerToken)
+int checkVictory(char board[][COLS], int rows, int columns, int numberConnect, char playerToken)
 {
     // horizontal check
     for (int i = 0; i < rows; i++)
     {
-        for (int j = 0; j <= columns - CONNECT_N; j++) // checks from index to n after if they are the same and not empty
+        for (int j = 0; j <= columns - numberConnect; j++) // checks from index to n after if they are the same and not empty
         {
-            if (areTheSameValueAndNotEmptyStraight(board, rows, columns, i, j, 0, CONNECT_N - 1, playerToken))
+            if (areTheSameValueAndNotEmptyStraight(board, rows, columns, i, j, 0, numberConnect - 1, playerToken))
             {
-                PrintVictoryMessage(playerToken);
                 return 1;
             }
         }
     }
 
     // vertical check
-    for (int i = 0; i <= rows - CONNECT_N; i++)
+    for (int i = 0; i <= rows - numberConnect; i++)
     {
         for (int j = 0; j < columns; j++) // checks from index to n after if they are the same and not empty
         {
-            if (areTheSameValueAndNotEmptyStraight(board, rows, columns, i, j, CONNECT_N - 1, 0, playerToken))
+            if (areTheSameValueAndNotEmptyStraight(board, rows, columns, i, j, numberConnect - 1, 0, playerToken))
             {
-                PrintVictoryMessage(playerToken);
                 return 1;
             }
         }
     }
 
     // diagonal left check
-    for (int i = 0; i <= rows - CONNECT_N; i++)
+    for (int i = 0; i <= rows - numberConnect; i++)
     {
-        for (int j = CONNECT_N - 1; j < columns; j++) // checks from index to n after if they are the same and not empty
+        for (int j = numberConnect - 1; j < columns; j++) // checks from index to n after if they are the same and not empty
         {
-            if (areTheSameValueAndNotEmptyDiagonalLeft(board, i, j, CONNECT_N, playerToken))
+            if (areTheSameValueAndNotEmptyDiagonalLeft(board, i, j, numberConnect, playerToken))
             {
-                PrintVictoryMessage(playerToken);
                 return 1;
             }
         }
     }
 
     // diagonal right check
-    for (int i = 0; i <= rows - CONNECT_N; i++)
+    for (int i = 0; i <= rows - numberConnect; i++)
     {
-        for (int j = 0; j <= columns - CONNECT_N; j++) // checks from index to n after if they are the same and not empty
+        for (int j = 0; j <= columns - numberConnect; j++) // checks from index to n after if they are the same and not empty
         {
-            if (areTheSameValueAndNotEmptyDiagonalRight(board, i, j, CONNECT_N, playerToken))
+            if (areTheSameValueAndNotEmptyDiagonalRight(board, i, j, numberConnect, playerToken))
             {
-                PrintVictoryMessage(playerToken);
                 return 1;
             }
         }
@@ -418,10 +422,120 @@ int humanChoose(char board[][COLS], int rows, int columns)
     }
 
     // computer logic
+}
 
-    int computerChoose(char board[][COLS], int rows, int columns, char token)
+// Define column priority order (center columns first) to break ties
+// For 7 columns: 3 -> 2 -> 4 -> 1 -> 5 -> 0 -> 6
+
+// 1. Check for immediate win (Priority 1)
+// Try to place myToken. If it wins, choose this column.
+
+// 2. Block opponent's win (Priority 2)
+// Try to place enemyToken. If it wins for them, block this column.
+
+// 3. Create a sequence of 3 (Priority 3)
+// Try to place myToken to create a sequence of 3.
+
+// 4. Block opponent's sequence of 3 (Priority 4)
+// Try to place enemyToken to prevent them from creating a sequence of 3.
+
+// 5. Arbitrary choice (Priority 5)
+// If no condition is met, pick the first available column based on priority order.
+
+int calculateColumnPriority(int columns, int priorityIndex)
+{
+    int center = columns / 2;
+    if (priorityIndex % 2 == 0)
     {
-
-        return 0;
+        return center + (priorityIndex / 2);
     }
+    else
+    {
+        return center - ((priorityIndex + 1) / 2);
+    }
+}
+
+int computerChoose(char board[][COLS], int rows, int columns, char token)
+{
+    int possibleMove;
+    int priorityOrder[COLS];
+    for (int i = 0; i < columns; i++)
+    {
+        priorityOrder[i] = calculateColumnPriority(columns, i);
+    }
+    possibleMove = computerHelper(board, rows, columns, token, priorityOrder, CONNECT_N);
+
+    if (possibleMove != -1)
+    {
+        return possibleMove;
+    }
+    char opponentToken = (token == TOKEN_P1) ? TOKEN_P2 : TOKEN_P1; // gets the opponent token
+    possibleMove = computerHelper(board, rows, columns, opponentToken, priorityOrder, CONNECT_N);
+    if (possibleMove != -1)
+    {
+        return possibleMove;
+    }
+    if (CONNECT_N - 1 > 1)
+    {
+        possibleMove = computerHelper(board, rows, columns, token, priorityOrder, CONNECT_N - 1);
+        if (possibleMove != -1)
+        {
+            return possibleMove;
+        }
+        possibleMove = computerHelper(board, rows, columns, opponentToken, priorityOrder, CONNECT_N - 1);
+        if (possibleMove != -1)
+        {
+            return possibleMove;
+        }
+        // If no strategic move found, pick the first available column based on priority order
+        for (int i = 0; i < columns; i++)
+        {
+            int col = priorityOrder[i];
+            if (!isColumnFull(board, rows, columns, col))
+            {
+                return col;
+            }
+        }
+    }
+    return 0; // default return value, should not reach here if the board is not full
+}
+
+int computerHelper(char board[][COLS], int rows, int columns, char token, int priorityOrder[COLS], int customConnectN)
+{
+    int possibleMove = -1; // initialize to -1 to indicate no move found
+
+    possibleMove = checkNextMoveWins(board, rows, columns, token, priorityOrder, customConnectN);
+    if (possibleMove != -1)
+    {
+        return possibleMove;
+    }
+
+    return possibleMove;
+}
+
+int checkNextMoveWins(char board[][COLS], int rows, int columns, char playerToken, int priorityOrder[COLS], int customConnectN)
+{
+
+    for (int i = 0; i < columns; i++)
+    {
+        int col = priorityOrder[i];
+        if (col == 2 && customConnectN == 3)
+        {
+            int debug = 1;
+        }
+        int freeRow = getFreeRow(board, rows, columns, col);
+
+        if (freeRow != -1)
+        {
+            makeMove(board, rows, columns, col, playerToken);
+            int victory = checkVictory(board, rows, columns, customConnectN, playerToken);
+            // Undo move
+            board[freeRow][col] = EMPTY;
+            if (victory)
+            {
+                return col;
+            }
+        }
+    }
+    return -1;
 }
