@@ -65,6 +65,9 @@ void performMove(char board[][COLS], int rows, int columns, int pType, char play
 // diagonal check helpers
 int areTheSameValueAndNotEmptyDiagonalLeft(char board[][COLS], int startRow, int startCol, int diagonal, char playerToken);
 int areTheSameValueAndNotEmptyDiagonalRight(char board[][COLS], int startRow, int startCol, int diagonal, char playerToken);
+// straight check helpers
+int areTheSameValueAndNotEmptyVertical(char board[][COLS], int startRow, int startCol, int numberConnect, char playerToken);
+int areTheSameValueAndNotEmptyHorizontal(char board[][COLS], int startRow, int startCol, int numberConnect, char playerToken);
 
 // print victory message
 void PrintVictoryMessage(char playerToken);
@@ -279,7 +282,8 @@ int checkVictory(char board[][COLS], int rows, int columns, int numberConnect, c
     {
         for (int j = 0; j <= columns - numberConnect; j++) // checks from index to n after if they are the same and not empty
         {
-            if (areTheSameValueAndNotEmptyStraight(board, rows, columns, i, j, 0, numberConnect - 1, playerToken))
+
+            if (areTheSameValueAndNotEmptyHorizontal(board, i, j, numberConnect, playerToken))
             {
                 return 1;
             }
@@ -291,7 +295,8 @@ int checkVictory(char board[][COLS], int rows, int columns, int numberConnect, c
     {
         for (int j = 0; j < columns; j++) // checks from index to n after if they are the same and not empty
         {
-            if (areTheSameValueAndNotEmptyStraight(board, rows, columns, i, j, numberConnect - 1, 0, playerToken))
+            // if (areTheSameValueAndNotEmptyStraight(board, rows, columns, i, j, numberConnect - 1, 0, playerToken))
+            if (areTheSameValueAndNotEmptyVertical(board, i, j, numberConnect, playerToken))
             {
                 return 1;
             }
@@ -337,6 +342,32 @@ void PrintVictoryMessage(char playerToken)
     }
 }
 
+int areTheSameValueAndNotEmptyVertical(char board[][COLS], int startRow, int startCol, int numberConnect, char playerToken)
+{
+    for (int i = 0; i < numberConnect; i++)
+    {
+        // Check moving down rows (startRow + i), keeping column constant
+        if (board[startRow + i][startCol] != playerToken)
+        {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+int areTheSameValueAndNotEmptyHorizontal(char board[][COLS], int startRow, int startCol, int numberConnect, char playerToken)
+{
+    for (int i = 0; i < numberConnect; i++)
+    {
+        // Check moving right across columns (startCol + i), keeping row constant
+        if (board[startRow][startCol + i] != playerToken)
+        {
+            return 0;
+        }
+    }
+    return 1;
+}
+
 /// diagonal check helpers
 int areTheSameValueAndNotEmptyDiagonalLeft(char board[][COLS], int startRow, int startCol, int diagonal, char playerToken)
 {
@@ -363,25 +394,6 @@ int areTheSameValueAndNotEmptyDiagonalRight(char board[][COLS], int startRow, in
 }
 
 // checks if the next n values in a straight line are the same and not empty
-int areTheSameValueAndNotEmptyStraight(char board[][COLS], int row, int col, int startRow, int startCol, int deltaRow, int deltaCol, char playerToken)
-{
-    if (!isInBounds(ROWS, COLS, startRow + deltaRow, startCol + deltaCol))
-    {
-        return 0;
-    }
-    for (int i = 0; i <= deltaRow; i++)
-    {
-        for (int j = 0; j <= deltaCol; j++)
-        {
-            if (board[startRow + i][startCol + j] != playerToken) // checks if the value is the same as the player token if not return 0
-            {
-                return 0;
-            }
-        }
-    }
-
-    return 1;
-}
 
 int humanChoose(char board[][COLS], int rows, int columns)
 {
@@ -519,10 +531,6 @@ int checkNextMoveWins(char board[][COLS], int rows, int columns, char playerToke
     for (int i = 0; i < columns; i++)
     {
         int col = priorityOrder[i];
-        if (col == 2 && customConnectN == 3)
-        {
-            int debug = 1;
-        }
         int freeRow = getFreeRow(board, rows, columns, col);
 
         if (freeRow != -1)
