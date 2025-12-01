@@ -24,23 +24,24 @@ Assignment:ex2
 #define HUMAN 1
 #define COMPUTER 2
 
-int isColumnFull(char board[][COLS], int rows, int columns, int coulmIndex);
+//reomved unnecesery int parameters 
+int isColumnFull(char board[][COLS], int coulmIndex);
 
 int isBoardFull(char board[][COLS], int rows, int columns);
 
 int isInBounds(int, int, int, int);
 
-/* Return index of row where token will land, or -1 if column full */
-int getFreeRow(char board[][COLS], int rows, int columns, int coulmIndex);
+/* Return index of row where token will land, or -1 if column full removed int unccery*/
+int getFreeRow(char board[][COLS], int rows, int coulmIndex);
 
-/* Place token in column (0-based). Return row index or -1 if illegal */
-int makeMove(char board[][COLS], int rows, int columns, int coulmIndex, char playerToken);
+/* Place token in column (0-based). Return row index or -1 if illegal removed int  */
+int makeMove(char board[][COLS], int rows, int coulmIndex, char playerToken);
 
 /// changed the function parmeters removed uncecery int
 int checkVictory(char board[][COLS], int rows, int columns, int numberConnect, char playerToken);
 
-/* Human player: asks repeatedly until a valid non-full column is chosen (0-based) */
-int humanChoose(char board[][COLS], int rows, int columns);
+/* Human player: asks repeatedly until a valid non-full column is chosen (0-based) and reomved int parameter */
+int humanChoose(char board[][COLS], int columns);
 
 /* Computer
  removed unnecesery char  parameter */
@@ -70,9 +71,9 @@ void PrintVictoryMessage(char playerToken);
 int computerHelper(char board[][COLS], int rows, int columns, char token, int priorityOrder[COLS], int customConnectN);
 
 // custom check
-int countMatches(char board[][COLS], int rows, int cols, int startRow, int startCol, int stepRow, int stepCol, char token);
-int checkVictoryFromCell(char board[][COLS], int rows, int columns, int row, int col, int targetLength, char token);
-int checkNextMoveWins(char board[][COLS], int rows, int columns, char playerToken, int priorityOrder[COLS], int targetLength);
+int countMatches(char board[][COLS], int rows, int cols, int startRow, int startCol, int stepRow, int stepCol, char token);// count matches in a specific direction
+int checkVictoryFromCell(char board[][COLS], int rows, int columns, int row, int col, int targetLength, char token);// check victory from a specific cell
+int checkNextMoveWins(char board[][COLS], int rows, int columns, char playerToken, int priorityOrder[COLS], int targetLength);// check if you move ceritan place youwin 
 
 int main()
 {
@@ -201,19 +202,19 @@ void performMove(char board[][COLS], int rows, int columns, int pType, char play
 
     if (pType == HUMAN)
     {
-        playeChosenColumn = humanChoose(board, rows, columns);
-        makeMove(board, rows, columns, playeChosenColumn, playerToken);
+        playeChosenColumn = humanChoose(board, columns);
+        makeMove(board, rows, playeChosenColumn, playerToken);
     }
     else if (pType == COMPUTER)
     {
 
         playeChosenColumn = computerChoose(board, rows, columns, playerToken);
-        makeMove(board, rows, columns, playeChosenColumn, playerToken);
+        makeMove(board, rows, playeChosenColumn, playerToken);
         printf("Computer chose column %d\n", playeChosenColumn + 1);
     }
 }
 
-int isColumnFull(char board[][COLS], int rows, int columns, int coulmIndex)
+int isColumnFull(char board[][COLS], int coulmIndex)
 {
     return board[0][coulmIndex] != EMPTY; // return 0 isn't full and 1 is it is full
 }
@@ -245,9 +246,9 @@ int isInBounds(int rows, int columns, int desiredRow, int desiredColumn)
 }
 
 // returns the free row index in the given column or -1 if the column is full
-int getFreeRow(char board[][COLS], int rows, int columns, int coulmIndex)
+int getFreeRow(char board[][COLS], int rows, int coulmIndex)
 {
-    if (!isColumnFull(board, rows, columns, coulmIndex))
+    if (!isColumnFull(board, coulmIndex))
     {
         for (int i = 1; i <= rows; i++)
         {
@@ -260,9 +261,9 @@ int getFreeRow(char board[][COLS], int rows, int columns, int coulmIndex)
     return -1;
 }
 
-int makeMove(char board[][COLS], int rows, int columns, int coulmIndex, char playerToken)
+int makeMove(char board[][COLS], int rows, int coulmIndex, char playerToken)
 {
-    int rowIndex = getFreeRow(board, rows, columns, coulmIndex);
+    int rowIndex = getFreeRow(board, rows, coulmIndex);
     if (rowIndex == -1)
     {
         return -1; // illegal move
@@ -308,7 +309,7 @@ void PrintVictoryMessage(char playerToken)
     }
 }
 
-int humanChoose(char board[][COLS], int rows, int columns)
+int humanChoose(char board[][COLS], int columns)
 {
     int choice;
     int isNumber;
@@ -336,7 +337,7 @@ int humanChoose(char board[][COLS], int rows, int columns)
         }
 
         // Check if the selected column is full
-        if (isColumnFull(board, rows, columns, choice - 1))
+        if (isColumnFull(board, choice - 1))
         {
             printf("Column %d is full. Choose another column.\n", choice);
             continue;
@@ -385,7 +386,7 @@ int computerChoose(char board[][COLS], int rows, int columns, char token)
         for (int i = 0; i < columns; i++)
         {
             int col = priorityOrder[i];
-            if (!isColumnFull(board, rows, columns, col))
+            if (!isColumnFull(board, col))
             {
                 return col;
             }
@@ -460,7 +461,7 @@ int checkNextMoveWins(char board[][COLS], int rows, int columns, char playerToke
     for (int i = 0; i < columns; i++)
     {
         int colIndex = priorityOrder[i];
-        int rowIndex = getFreeRow(board, rows, columns, colIndex);
+        int rowIndex = getFreeRow(board, rows, colIndex);
 
         // Skip if the column is full
         if (rowIndex == -1)
