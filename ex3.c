@@ -42,8 +42,10 @@ int checkVictory(char board[][COLS], int rows, int columns, char playerToken);
 /* Human player: asks repeatedly until a valid non-full column is chosen (0-based) */
 int humanChoose(char board[][COLS], int rows, int columns);
 
-/* Computer*/
-int computerChoose(char board[][COLS], int rows, int columns, char, char);
+/* Computer
+ removed unnecesery char  parameter */
+
+int computerChoose(char board[][COLS], int rows, int columns, char token);
 
 void runConnectFour(char board[][COLS], int rows, int columns, int, int);
 
@@ -413,5 +415,13 @@ int humanChoose(char board[][COLS], int rows, int columns)
 
         // If we reach here, the choice is valid so i return the column index
         return choice - 1;
+    }
+
+    // computer logic
+
+    int computerChoose(char board[][COLS], int rows, int columns, char token)
+    {
+
+        return 0;
     }
 }
