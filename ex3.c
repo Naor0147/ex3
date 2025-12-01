@@ -1,3 +1,9 @@
+/******************
+Name:Naor Biton
+ID:329218416
+Assignment:ex2
+*******************/
+
 #include <stdio.h>
 
 #ifndef ROWS
@@ -48,18 +54,21 @@ void printBoard(char board[][COLS], int rows, int cols);
 int getPlayerType(int);
 
 /// custom
+// checks if the next n values in a straight line are the same and not empty
 int areTheSameValueAndNotEmptyStraight(char board[][COLS], int row, int col, int startRow, int startCol, int deltaRow, int deltaCol, char playerToken);
-int gameTurnHelper(char board[][COLS], int rows, int columns, int pType, char playerToken);
-void gameHelper(char board[][COLS], int rows, int columns, int pType, char playerToken);
-int areTheSameValueAndNotEmptyDiagonalLeft(char board[][COLS], int row, int col, int startRow, int startCol, int diagonal, char playerToken);
-int areTheSameValueAndNotEmptyDiagonalRight(char board[][COLS], int row, int col, int startRow, int startCol, int diagonal, char playerToken);
+/// check for each turn if the game should continue or end
+int executeTurn(char board[][COLS], int rows, int columns, int pType, char playerToken);
+/// helps to make the games loop less packed
+void performMove(char board[][COLS], int rows, int columns, int pType, char playerToken);
+// diagonal check helpers
+int areTheSameValueAndNotEmptyDiagonalLeft(char board[][COLS], int startRow, int startCol, int diagonal, char playerToken);
+int areTheSameValueAndNotEmptyDiagonalRight(char board[][COLS], int startRow, int startCol, int diagonal, char playerToken);
 
-
-
+// print victory message
+void PrintVictoryMessage(char playerToken);
 
 int main()
 {
-
     char board[ROWS][COLS];
     printf("Connect Four (%d rows x %d cols)\n\n", ROWS, COLS);
     int p1Type = getPlayerType(1);
@@ -115,6 +124,7 @@ int getPlayerType(int playerNumber)
     }
 }
 
+// fill the board with empty
 void initBoard(char board[][COLS], int rows, int columns)
 {
     for (int i = 0; i < rows; i++)
@@ -127,35 +137,47 @@ void initBoard(char board[][COLS], int rows, int columns)
     }
 }
 
+// main game loop
 void runConnectFour(char board[][COLS], int rows, int columns, int p1Type, int p2Type)
 {
-    int gameRunneing = 1;
-    int turn = 1;
+    int gameRunneing = 1; // flag to keep the game running
+    int turn = 1;         // keeps track of the turn number and which player's turn it is
     while (gameRunneing)
     {
         if (turn % 2 == 1)
         {
-            gameRunneing = gameTurnHelper(board, rows, columns, p1Type, TOKEN_P1);
+            gameRunneing = executeTurn(board, rows, columns, p1Type, TOKEN_P1);
         }
         else
         {
-            gameRunneing = gameTurnHelper(board, rows, columns, p2Type, TOKEN_P2);
+            gameRunneing = executeTurn(board, rows, columns, p2Type, TOKEN_P2);
         }
 
-        turn++;
+        turn++; // increment turn to switch players
     }
 }
 
-int gameTurnHelper(char board[][COLS], int rows, int columns, int pType, char playerToken)
+int executeTurn(char board[][COLS], int rows, int columns, int pType, char playerToken)
 {
+    // check if board is full
     if (isBoardFull(board, rows, columns))
     {
         printf("Board full and no winner. It's a tie!\n");
         return 0;
     }
 
-    // makeMove(board, rows, columns, TOKEN_P1);
-    gameHelper(board, rows, columns, pType, playerToken);
+    // prints player number and player token
+    if (playerToken == TOKEN_P1)
+    {
+        printf("Player 1 (%c) turn.\n", playerToken);
+    }
+    else if (playerToken == TOKEN_P2)
+    {
+        printf("Player 2 (%c) turn.\n", playerToken);
+    }
+
+    // helper function to handle the game logic for each turn
+    performMove(board, rows, columns, pType, playerToken);
     printBoard(board, rows, columns);
 
     if (checkVictory(board, rows, columns, playerToken))
@@ -165,14 +187,14 @@ int gameTurnHelper(char board[][COLS], int rows, int columns, int pType, char pl
     return 1;
 }
 
-void gameHelper(char board[][COLS], int rows, int columns, int pType, char playerToken)
+void performMove(char board[][COLS], int rows, int columns, int pType, char playerToken)
 {
     int playeChosenColumn;
-    int rowIndex;
+
     if (pType == HUMAN)
     {
         playeChosenColumn = humanChoose(board, rows, columns);
-        rowIndex = makeMove(board, rows, columns, playeChosenColumn, playerToken);
+        makeMove(board, rows, columns, playeChosenColumn, playerToken);
     }
     else if (pType == COMPUTER)
     {
@@ -211,6 +233,7 @@ int isInBounds(int rows, int columns, int desiredRow, int desiredColumn)
     return 0;
 }
 
+// returns the free row index in the given column or -1 if the column is full
 int getFreeRow(char board[][COLS], int rows, int columns, int coulmIndex)
 {
     if (!isColumnFull(board, rows, columns, coulmIndex))
@@ -231,14 +254,14 @@ int makeMove(char board[][COLS], int rows, int columns, int coulmIndex, char pla
     int rowIndex = getFreeRow(board, rows, columns, coulmIndex);
     if (rowIndex == -1)
     {
-        /* code */
+        return -1; // illegal move
     }
-    board[rowIndex][coulmIndex] = playerToken;
+    board[rowIndex][coulmIndex] = playerToken; // enter the player token in player desierd column
 
-    return rowIndex;
+    return 0;
 }
 
-// neeed to fill
+// checks for victory in all directions+print victory message
 int checkVictory(char board[][COLS], int rows, int columns, char playerToken)
 {
     // horizontal check
@@ -248,7 +271,7 @@ int checkVictory(char board[][COLS], int rows, int columns, char playerToken)
         {
             if (areTheSameValueAndNotEmptyStraight(board, rows, columns, i, j, 0, CONNECT_N - 1, playerToken))
             {
-                printf("Player %c wins!\n", playerToken);
+                PrintVictoryMessage(playerToken);
                 return 1;
             }
         }
@@ -261,7 +284,7 @@ int checkVictory(char board[][COLS], int rows, int columns, char playerToken)
         {
             if (areTheSameValueAndNotEmptyStraight(board, rows, columns, i, j, CONNECT_N - 1, 0, playerToken))
             {
-                printf("Player %c wins!\n", playerToken);
+                PrintVictoryMessage(playerToken);
                 return 1;
             }
         }
@@ -272,9 +295,9 @@ int checkVictory(char board[][COLS], int rows, int columns, char playerToken)
     {
         for (int j = CONNECT_N - 1; j < columns; j++) // checks from index to n after if they are the same and not empty
         {
-            if (areTheSameValueAndNotEmptyDiagonalLeft(board, rows, columns, i, j, CONNECT_N, playerToken))
+            if (areTheSameValueAndNotEmptyDiagonalLeft(board, i, j, CONNECT_N, playerToken))
             {
-                printf("Player %c wins!\n", playerToken);
+                PrintVictoryMessage(playerToken);
                 return 1;
             }
         }
@@ -285,19 +308,31 @@ int checkVictory(char board[][COLS], int rows, int columns, char playerToken)
     {
         for (int j = 0; j <= columns - CONNECT_N; j++) // checks from index to n after if they are the same and not empty
         {
-            if (areTheSameValueAndNotEmptyDiagonalRight(board, rows, columns, i, j, CONNECT_N, playerToken))
+            if (areTheSameValueAndNotEmptyDiagonalRight(board, i, j, CONNECT_N, playerToken))
             {
-                printf("Player %c wins!\n", playerToken);
+                PrintVictoryMessage(playerToken);
                 return 1;
             }
         }
     }
 
-
     return 0;
 }
 
-int areTheSameValueAndNotEmptyDiagonalLeft(char board[][COLS], int row, int col, int startRow, int startCol, int diagonal, char playerToken)
+void PrintVictoryMessage(char playerToken)
+{
+    if (TOKEN_P1 == playerToken)
+    {
+        printf("Player 1 (%c) wins!\n", playerToken);
+    }
+    else if (TOKEN_P2 == playerToken)
+    {
+        printf("Player 2 (%c) wins!\n", playerToken);
+    }
+}
+
+/// diagonal check helpers
+int areTheSameValueAndNotEmptyDiagonalLeft(char board[][COLS], int startRow, int startCol, int diagonal, char playerToken)
 {
     for (int i = 0; i < diagonal; i++)
     {
@@ -309,7 +344,7 @@ int areTheSameValueAndNotEmptyDiagonalLeft(char board[][COLS], int row, int col,
     return 1;
 }
 
-int areTheSameValueAndNotEmptyDiagonalRight(char board[][COLS], int row, int col, int startRow, int startCol, int diagonal, char playerToken)
+int areTheSameValueAndNotEmptyDiagonalRight(char board[][COLS], int startRow, int startCol, int diagonal, char playerToken)
 {
     for (int i = 0; i < diagonal; i++)
     {
@@ -321,8 +356,7 @@ int areTheSameValueAndNotEmptyDiagonalRight(char board[][COLS], int row, int col
     return 1;
 }
 
-
-
+// checks if the next n values in a straight line are the same and not empty
 int areTheSameValueAndNotEmptyStraight(char board[][COLS], int row, int col, int startRow, int startCol, int deltaRow, int deltaCol, char playerToken)
 {
     if (!isInBounds(ROWS, COLS, startRow + deltaRow, startCol + deltaCol))
@@ -346,17 +380,15 @@ int areTheSameValueAndNotEmptyStraight(char board[][COLS], int row, int col, int
 int humanChoose(char board[][COLS], int rows, int columns)
 {
     int choice;
-    int n;
+    int isNumber;
 
     while (1)
     {
         printf("Enter column (1-%d): ", columns);
-
-        // Try to read an integer from input
-        n = scanf("%d", &choice);
+        isNumber = scanf("%d", &choice);
 
         // Check if input was not a number
-        if (n != 1)
+        if (isNumber != 1)
         {
             printf("Invalid input. Enter a number.\n");
             // Clear input buffer from invalid characters
@@ -365,7 +397,7 @@ int humanChoose(char board[][COLS], int rows, int columns)
             continue;
         }
 
-        // Check if the number is within valid range
+        // Check if the number is with in valid range
         if (choice < 1 || choice > columns)
         {
             printf("Invalid column. Choose between 1 and %d.\n", columns);
@@ -373,14 +405,13 @@ int humanChoose(char board[][COLS], int rows, int columns)
         }
 
         // Check if the selected column is full
-        // Note: passing choice - 1 because array is 0-based
         if (isColumnFull(board, rows, columns, choice - 1))
         {
             printf("Column %d is full. Choose another column.\n", choice);
             continue;
         }
 
-        // If we got here, the move is valid. Return 0-based index.
+        // If we reach here, the choice is valid so i return the column index
         return choice - 1;
     }
 }
