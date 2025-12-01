@@ -239,7 +239,7 @@ int checkVictory(char board[][COLS], int rows, int columns, char playerToken)
     // horizontal check
     for (int i = 0; i < rows; i++)
     {
-        for (int j = 0; j < columns - CONNECT_N; j++) // checks from index to n after if they are the same and not empty
+        for (int j = 0; j <= columns - CONNECT_N; j++) // checks from index to n after if they are the same and not empty
         {
             if (areTheSameValueAndNotEmpty(board, rows, columns, i, j, 0, CONNECT_N - 1, playerToken))
             {
@@ -250,7 +250,7 @@ int checkVictory(char board[][COLS], int rows, int columns, char playerToken)
     }
 
     // vertical check
-    for (int i = 0; i < rows - CONNECT_N; i++)
+    for (int i = 0; i <= rows - CONNECT_N; i++)
     {
         for (int j = 0; j < columns; j++) // checks from index to n after if they are the same and not empty
         {
