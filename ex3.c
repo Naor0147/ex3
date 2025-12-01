@@ -48,9 +48,14 @@ void printBoard(char board[][COLS], int rows, int cols);
 int getPlayerType(int);
 
 /// custom
-int areTheSameValueAndNotEmpty(char board[][COLS], int row, int col, int startRow, int startCol, int deltaRow, int deltaCol, char playerToken);
+int areTheSameValueAndNotEmptyStraight(char board[][COLS], int row, int col, int startRow, int startCol, int deltaRow, int deltaCol, char playerToken);
 int gameTurnHelper(char board[][COLS], int rows, int columns, int pType, char playerToken);
 void gameHelper(char board[][COLS], int rows, int columns, int pType, char playerToken);
+int areTheSameValueAndNotEmptyDiagonalLeft(char board[][COLS], int row, int col, int startRow, int startCol, int diagonal, char playerToken);
+int areTheSameValueAndNotEmptyDiagonalRight(char board[][COLS], int row, int col, int startRow, int startCol, int diagonal, char playerToken);
+
+
+
 
 int main()
 {
@@ -241,7 +246,7 @@ int checkVictory(char board[][COLS], int rows, int columns, char playerToken)
     {
         for (int j = 0; j <= columns - CONNECT_N; j++) // checks from index to n after if they are the same and not empty
         {
-            if (areTheSameValueAndNotEmpty(board, rows, columns, i, j, 0, CONNECT_N - 1, playerToken))
+            if (areTheSameValueAndNotEmptyStraight(board, rows, columns, i, j, 0, CONNECT_N - 1, playerToken))
             {
                 printf("Player %c wins!\n", playerToken);
                 return 1;
@@ -254,7 +259,7 @@ int checkVictory(char board[][COLS], int rows, int columns, char playerToken)
     {
         for (int j = 0; j < columns; j++) // checks from index to n after if they are the same and not empty
         {
-            if (areTheSameValueAndNotEmpty(board, rows, columns, i, j, CONNECT_N - 1, 0, playerToken))
+            if (areTheSameValueAndNotEmptyStraight(board, rows, columns, i, j, CONNECT_N - 1, 0, playerToken))
             {
                 printf("Player %c wins!\n", playerToken);
                 return 1;
@@ -263,12 +268,62 @@ int checkVictory(char board[][COLS], int rows, int columns, char playerToken)
     }
 
     // diagonal left check
+    for (int i = 0; i <= rows - CONNECT_N; i++)
+    {
+        for (int j = CONNECT_N - 1; j < columns; j++) // checks from index to n after if they are the same and not empty
+        {
+            if (areTheSameValueAndNotEmptyDiagonalLeft(board, rows, columns, i, j, CONNECT_N, playerToken))
+            {
+                printf("Player %c wins!\n", playerToken);
+                return 1;
+            }
+        }
+    }
 
     // diagonal right check
+    for (int i = 0; i <= rows - CONNECT_N; i++)
+    {
+        for (int j = 0; j <= columns - CONNECT_N; j++) // checks from index to n after if they are the same and not empty
+        {
+            if (areTheSameValueAndNotEmptyDiagonalRight(board, rows, columns, i, j, CONNECT_N, playerToken))
+            {
+                printf("Player %c wins!\n", playerToken);
+                return 1;
+            }
+        }
+    }
+
+
     return 0;
 }
 
-int areTheSameValueAndNotEmpty(char board[][COLS], int row, int col, int startRow, int startCol, int deltaRow, int deltaCol, char playerToken)
+int areTheSameValueAndNotEmptyDiagonalLeft(char board[][COLS], int row, int col, int startRow, int startCol, int diagonal, char playerToken)
+{
+    for (int i = 0; i < diagonal; i++)
+    {
+        if (board[startRow + i][startCol - i] != playerToken)
+        {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+int areTheSameValueAndNotEmptyDiagonalRight(char board[][COLS], int row, int col, int startRow, int startCol, int diagonal, char playerToken)
+{
+    for (int i = 0; i < diagonal; i++)
+    {
+        if (board[startRow + i][startCol + i] != playerToken)
+        {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+
+
+int areTheSameValueAndNotEmptyStraight(char board[][COLS], int row, int col, int startRow, int startCol, int deltaRow, int deltaCol, char playerToken)
 {
     if (!isInBounds(ROWS, COLS, startRow + deltaRow, startCol + deltaCol))
     {
